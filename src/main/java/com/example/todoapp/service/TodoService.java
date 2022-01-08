@@ -33,7 +33,7 @@ public class TodoService {
 
     public List<TodoEntity> create(final TodoEntity entity){
         // Validations 커지면 TodoValidator.java로 분리
-        validateTodoEntity(entity);
+        validateTodoEntityBasic(entity);
 
         todoRepository.save(entity);
 
@@ -43,7 +43,41 @@ public class TodoService {
         return todoRepository.findByUserId(entity.getUserId());
     }
 
-    private void validateTodoEntity(final TodoEntity entity) {
+    public List<TodoEntity> retrieve(final String userId) {
+        return todoRepository.findByUserId(userId);
+    }
+
+    // 수정과 삭제시 대상 id 가 존재 하지 않으면 에러를 일으켜야 되지 않나??
+
+    public List<TodoEntity> update(final TodoEntity entity) {
+        validateTodoEntityExist(entity);
+
+        final Optional<TodoEntity> original = todoRepository.findById(entity.getId());
+
+        original.ifPresent(todo -> {
+            todo.setTitle(entity.getTitle());
+            todo.setDone(entity.isDone());
+
+            todoRepository.save(todo);
+        });
+
+        return retrieve(entity.getUserId());
+    }
+
+    public List<TodoEntity> delete(final TodoEntity entity) {
+        validateTodoEntityExist(entity);
+        try {
+            todoRepository.delete(entity);
+        } catch (Exception e) {
+            log.error("error deleting entity " + entity.getId(), e);
+
+            throw new RuntimeException("error deleting entity" + entity.getId());
+        }
+
+        return retrieve(entity.getUserId());
+    }
+
+    private void validateTodoEntityBasic(final TodoEntity entity) {
         if (entity == null) {
             log.warn("Entity cannot be null");
             throw new RuntimeException("Entity cannot be null.");
@@ -55,22 +89,15 @@ public class TodoService {
         }
     }
 
-    public List<TodoEntity> retrieve(final String userId) {
-        return todoRepository.findByUserId(userId);
-    }
+    private void validateTodoEntityExist(final TodoEntity entity) {
+        validateTodoEntityBasic(entity);
 
-    public List<TodoEntity> update(final TodoEntity entity) {
-        validateTodoEntity(entity);
+        final Optional<TodoEntity> original = todoRepository.findById(entity.getId());
 
-        final Optional<TodoEntity> orginal = todoRepository.findById(entity.getId());
+        if (!original.isPresent()) {
+            log.info("cannot find entity id: " + entity.getId());
 
-        orginal.ifPresent(todo -> {
-            todo.setTitle(entity.getTitle());
-            todo.setDone(entity.isDone());
-
-            todoRepository.save(todo);
-        });
-
-        return retrieve(entity.getUserId());
+            throw new RuntimeException("cannot find entity id: " + entity.getId());
+        }
     }
 }
