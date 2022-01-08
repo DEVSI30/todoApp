@@ -40,7 +40,7 @@ public class TodoService {
         log.info("Entity id : {} is saved", entity.getId());
 
 
-        return todoRepository.findAllByUserId(entity.getUserId());
+        return todoRepository.findByUserId(entity.getUserId());
     }
 
     private void validateTodoEntity(final TodoEntity entity) {
@@ -53,5 +53,24 @@ public class TodoService {
             log.warn("Unknown user.");
             throw new RuntimeException("Unknown user.");
         }
+    }
+
+    public List<TodoEntity> retrieve(final String userId) {
+        return todoRepository.findByUserId(userId);
+    }
+
+    public List<TodoEntity> update(final TodoEntity entity) {
+        validateTodoEntity(entity);
+
+        final Optional<TodoEntity> orginal = todoRepository.findById(entity.getId());
+
+        orginal.ifPresent(todo -> {
+            todo.setTitle(entity.getTitle());
+            todo.setDone(entity.isDone());
+
+            todoRepository.save(todo);
+        });
+
+        return retrieve(entity.getUserId());
     }
 }

@@ -1,10 +1,12 @@
 package com.example.todoapp.dto;
 
 import com.example.todoapp.model.TodoEntity;
+import com.fasterxml.jackson.databind.util.BeanUtil;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.beans.BeanUtils;
 
 /**
  * Model -> DTO 로 하는 이유
@@ -29,10 +31,8 @@ public class TodoDTO {
 
     // DTO -> Entity
     public static TodoEntity toEntity(final TodoDTO dto) {
-        return TodoEntity.builder()
-                .id(dto.getId())
-                .title(dto.getTitle())
-                .done(dto.isDone())
-                .build();
+        TodoEntity newEntity = new TodoEntity();
+        BeanUtils.copyProperties(dto, newEntity);
+        return newEntity;
     }
 }

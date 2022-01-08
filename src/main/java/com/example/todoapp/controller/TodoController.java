@@ -26,6 +26,8 @@ public class TodoController {
 
     private final TodoService todoService;
 
+    private final static String temporaryUserId = "temporary-user";
+
     /**
      * TodoList item 목록 구하기
      * @param userId 사용자의 ID
@@ -59,7 +61,6 @@ public class TodoController {
     @PostMapping
     public ResponseEntity<?> createTodo(@RequestBody TodoDTO dto) {
         try {
-            String temporaryUserId = "temporary-user";
 
             TodoEntity entity = TodoDTO.toEntity(dto);
 
@@ -83,5 +84,34 @@ public class TodoController {
             ResponseDTO<TodoDTO> response = ResponseDTO.<TodoDTO>builder().error(error).build();
             return ResponseEntity.badRequest().body(response); //badrequest라는 보장이 없는데?
         }
+    }
+
+    @GetMapping
+    public ResponseEntity<?> retrieveTodoList() {
+
+        List<TodoEntity> entities = todoService.retrieve(temporaryUserId);
+
+        List<TodoDTO> dtos = entities.stream().map(TodoDTO::new).collect(Collectors.toList());
+
+        ResponseDTO<TodoDTO> response = ResponseDTO.<TodoDTO>builder().data(dtos).build();
+
+        return ResponseEntity.ok().body(response);
+    }
+
+    @PutMapping
+    public ResponseEntity<?> updateTodo(@RequestBody TodoDTO dto) {
+        TodoEntity entity = TodoDTO.toEntity(dto);
+
+        entity.setUserId(temporaryUserId);
+
+        List<TodoEntity> entities = todoService.update(entity);
+
+        // 자바 스프링을 이용해 리턴된 엔티티 리스트를 ToDoList 로 변환한다.
+
+        List<TodoDTO> dtos = entities.stream().map(TodoDTO::new).collect(Collectors.toList());
+
+        ResponseDTO<TodoDTO> response = ResponseDTO.<TodoDTO>builder().data(dtos).build();
+
+        return ResponseEntity.ok().body(response);
     }
 }

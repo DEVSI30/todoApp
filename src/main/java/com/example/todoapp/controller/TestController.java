@@ -32,9 +32,7 @@ public class TestController {
         List<String> list = new ArrayList<>();
         list.add("Hello World!");
 
-        ResponseDTO<String> response = ResponseDTO.<String>builder().data(list).build();
-
-        return response;
+        return ResponseDTO.<String>builder().data(list).build();
     }
 
     @GetMapping("/testResponseEntity")
@@ -45,8 +43,6 @@ public class TestController {
 
         return ResponseEntity.ok().body(response);
     }
-
-
 
 
 
