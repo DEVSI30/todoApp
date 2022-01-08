@@ -47,7 +47,6 @@ public class TodoService {
         return todoRepository.findByUserId(userId);
     }
 
-    // 수정과 삭제시 대상 id 가 존재 하지 않으면 에러를 일으켜야 되지 않나??
 
     public List<TodoEntity> update(final TodoEntity entity) {
         validateTodoEntityExist(entity);
