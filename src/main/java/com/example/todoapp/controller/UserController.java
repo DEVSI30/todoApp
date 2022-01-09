@@ -3,6 +3,7 @@ package com.example.todoapp.controller;
 import com.example.todoapp.dto.ResponseDTO;
 import com.example.todoapp.dto.UserDTO;
 import com.example.todoapp.model.UserEntity;
+import com.example.todoapp.security.TokenProvider;
 import com.example.todoapp.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/auth")
 public class UserController {
     private final UserService userService;
+    private final TokenProvider tokenProvider;
 
     @PostMapping("/signup")
     public ResponseEntity<?> registerUser(@RequestBody UserDTO userDTO) {
@@ -57,11 +59,13 @@ public class UserController {
         UserEntity user = userService.getByCredentials(userDTO.getEmail(), userDTO.getPassword());
 
         if (user != null) {
+            final String token = tokenProvider.create(user);
             final UserDTO responseUserDTO = UserDTO.builder()
                     .email(user.getUsername())
                     .id(user.getId())
+                    .token(token)
                     .build();
-            return ResponseEntity.ok().body(userDTO);
+            return ResponseEntity.ok().body(responseUserDTO);
         }
         else{
             ResponseDTO responseDTO = ResponseDTO.builder()
