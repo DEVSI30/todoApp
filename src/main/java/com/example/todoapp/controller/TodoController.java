@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -15,18 +16,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * todo : 실습코드 2-20 과 같이 TodoController를 작성해보자.
- * 스스로 ResponseEntity를 리턴하는 HTTP GET testTodo() 메서드를 작성하자
- */
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("todo")
 public class TodoController {
 
     private final TodoService todoService;
-
-    private final static String temporaryUserId = "temporary-user";
 
     /**
      * TodoList item 목록 구하기
@@ -59,7 +54,9 @@ public class TodoController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createTodo(@RequestBody TodoDTO dto) {
+    public ResponseEntity<?> createTodo(
+            @AuthenticationPrincipal String userId,
+            @RequestBody TodoDTO dto) {
         try {
 
             TodoEntity entity = TodoDTO.toEntity(dto);
@@ -67,8 +64,7 @@ public class TodoController {
             // id를 null 로 초기화 한다. 생성 당시에는 id 가 없어야 하기 때문이다. (자동으로 채워주나?_
             entity.setId(null);
 
-            // 4장에서 인증과 인가에서 수정할 예정
-            entity.setUserId(temporaryUserId);
+            entity.setUserId(userId);
 
             List<TodoEntity> entities = todoService.create(entity);
 
@@ -87,9 +83,9 @@ public class TodoController {
     }
 
     @GetMapping
-    public ResponseEntity<?> retrieveTodoList() {
+    public ResponseEntity<?> retrieveTodoList(@AuthenticationPrincipal String userId) {
 
-        List<TodoEntity> entities = todoService.retrieve(temporaryUserId);
+        List<TodoEntity> entities = todoService.retrieve(userId);
 
         List<TodoDTO> dtos = entities.stream().map(TodoDTO::new).collect(Collectors.toList());
 
@@ -99,10 +95,11 @@ public class TodoController {
     }
 
     @PutMapping
-    public ResponseEntity<?> updateTodo(@RequestBody TodoDTO dto) {
+    public ResponseEntity<?> updateTodo(@AuthenticationPrincipal String userId,
+                                        @RequestBody TodoDTO dto) {
         TodoEntity entity = TodoDTO.toEntity(dto);
 
-        entity.setUserId(temporaryUserId);
+        entity.setUserId(userId);
 
         List<TodoEntity> entities = todoService.update(entity);
 
@@ -117,11 +114,13 @@ public class TodoController {
 
     // 여기서 굳이 dto 로 받을 필요가 있나? id 만 string 으로 받으면 안 되나?
     @DeleteMapping
-    public ResponseEntity<?> deleteTodo(@RequestBody TodoDTO dto) {
+    public ResponseEntity<?> deleteTodo(
+            @AuthenticationPrincipal String userId,
+            @RequestBody TodoDTO dto) {
         try {
 
             TodoEntity entity = TodoDTO.toEntity(dto);
-            entity.setUserId(temporaryUserId);
+            entity.setUserId(userId);
 
             List<TodoEntity> entities = todoService.delete(entity);
 

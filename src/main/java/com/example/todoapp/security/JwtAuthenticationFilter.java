@@ -39,6 +39,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 log.info("Authenticated user ID : " + userId);
 
                 // SecurityContextHolder에 등록해야 인증된 사용자라고 생각한다.
+                // 여기서 첫 매개변수로 넣은것이 AuthenticationPrincipal 이다.
+                // 이걸 Spring이 찾아서 넣어주는 것, 여기서 String 타입으로 넣어주었으니 String으로 받아주는 것
+                // UserDetail Class를 구현하고, 그걸 넣어주면 그 클래스로 받아주겠지
                 AbstractAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
                         userId, // 인증된 사용자의 정보, 문자열이 아니어도 아무것이나 넣을 수 있다. 보통 UserDetails라는 오브젝트를 넣는다.
                         null,
