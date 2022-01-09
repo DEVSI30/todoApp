@@ -7,9 +7,7 @@ import com.example.todoapp.security.TokenProvider;
 import com.example.todoapp.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -23,8 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
     private final UserService userService;
     private final TokenProvider tokenProvider;
-
-    private PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private final PasswordEncoder passwordEncoder;
 
     @PostMapping("/signup")
     public ResponseEntity<?> registerUser(@RequestBody UserDTO userDTO) {
@@ -32,7 +29,7 @@ public class UserController {
             UserEntity user = UserEntity.builder()
                     .email(userDTO.getEmail())
                     .username(userDTO.getUsername())
-                    .password(userDTO.getPassword())
+                    .password(passwordEncoder.encode(userDTO.getPassword())) // 책에 가입할 때 암호화 하는 부분이 빠져있는데요?...
                     .build();
             // BeanUtils.copyProperties 가 더 짧은데,, userDTO 에서 뭐가 user로 넘어가지를 확인하기 귀찮음?
 //            UserEntity user = new UserEntity();
@@ -50,7 +47,7 @@ public class UserController {
             return ResponseEntity.ok().body(responseDTO);
 
         } catch (Exception e) {
-            ResponseDTO responseDTO = ResponseDTO.builder().error(e.getMessage()).build();
+            ResponseDTO<Object> responseDTO = ResponseDTO.builder().error(e.getMessage()).build();
             return ResponseEntity
                     .badRequest()
                     .body(responseDTO);
@@ -72,7 +69,7 @@ public class UserController {
             return ResponseEntity.ok().body(responseUserDTO);
         }
         else{
-            ResponseDTO responseDTO = ResponseDTO.builder()
+            ResponseDTO<Object> responseDTO = ResponseDTO.builder()
                     .error("Login Failed.")
                     .build();
 
